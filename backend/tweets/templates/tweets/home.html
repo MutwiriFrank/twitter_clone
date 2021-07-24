@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- JavaScript Bundle with Popper -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+
+   
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">Lets share</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-none">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Link</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Dropdown
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <li><a class="dropdown-item" href="#">Action</a></li>
+                  <li><a class="dropdown-item" href="#">Another action</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+              </li>
+            </ul>
+            <form class="d-flex d-none">
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+              <button type='submit' class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+          </div>
+        </div>
+      </nav>
+   
+      <form class='form ' method="post" id='tweet-create-form' action='{% url 'tweets:tweet_create' %}' >
+          {% csrf_token %}
+        <div  class=" container col-10">
+            <input type='hidden' value='/' name='next' >
+            <textarea required='required' class="form-control" name="content" placeholder="waasup biatch"></textarea>
+            <button type='submit' class="btn btn-primary small my-1"> Share</button>
+        </div>
+    </form>
+    
+    <div class="container" id = tweets>
+        Replace me
+    </div>
+
+    <script>
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+      }
+        function handleTweetCreateFormOnSubmit(event){
+          event.preventDefault()
+          const myForm =event.target
+          const myFormData = new FormData(myForm)
+          //for (var myItem of myFormData.entries()){  outputing form contnet
+           // console.log(myItem)
+          //}
+          const url = myForm.getAttribute("action")
+          const method = myForm.getAttribute("method")
+          const xhr = new XMLHttpRequest()
+          xhr.open(method, url)
+          xhr.setRequestHeader('HTTP_X_REQUESTED_WITH', 'XMLHttpRequest' )
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest' )
+          xhr.onload = function (){
+            const serverResponse = xhr.response
+            console.log(serverResponse)
+            const tweetsElement = document.getElementById("tweets")     
+            loadTweets(tweetsElement)
+      
+            myForm.reset()
+
+          }
+          xhr.send(myFormData)
+          
+
+        }
+
+        const tweetCreateFormElement = document.getElementById("tweet-create-form")
+        tweetCreateFormElement.addEventListener("submit", handleTweetCreateFormOnSubmit)
+
+        const tweetsElement = document.getElementById("tweets") //get html
+        //tweetsElement.innerHTML = 'Loading...' // set html
+        
+        //var el1 = "<h1>Hi there 1</h1>"
+        //var el2= "Hi there 2"
+        //var el3 = "Hi there 3"
+        //var el4 = "Hi there 4"
+        //tweetsElement.innerHTML = el1 + el2 + el3 +el4
+
+        function handleDidLike(tweet_id, count , action){
+            console.log(tweet_id, count )
+            const url = 'tweet/action/'
+            const method = 'POST'
+            const data = JSON.stringify({
+              id : tweet_id,
+              action : action
+              
+            })
+            console.log("action is", action)
+            const xhr = new XMLHttpRequest()
+            const csrftoken = getCookie('csrftoken');
+            xhr.open(method, url)
+            xhr.setRequestHeader('Content-Type', 'application/json' )
+            xhr.setRequestHeader('HTTP_X_REQUESTED_WITH', 'XMLHttpRequest' )
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest' )
+            xhr.setRequestHeader('X-CSRFToken', csrftoken)
+            xhr.onload = function (){
+              console.log(xhr.status, xhr.response)
+            }
+            xhr.send(data)
+
+        }
+        function retweetBtn(tweet){
+          return "<button class='btn btn-outline-success btn-sm' onclick =handleDidLike("+ tweet.id +","+ tweet.likes +",'retweet') > Retweet </button>"
+        }
+        function unlikeBtn(tweet){
+          return "<button class='btn btn-outline-primary btn-sm' onclick =handleDidLike("+ tweet.id +","+ tweet.likes +",'unlike') >  Unlike </button>"
+        }
+
+        function likeBtn(tweet){
+            return "<button class='btn btn-primary btn-sm' onclick =handleDidLike("+ tweet.id +","+ tweet.likes +",'like') >"+ tweet.likes +"  Likes</button>"
+        }
+
+        function formatTweetElement (tweet){
+           var formattedTweet = "<div class='col-12 my-3 pd-3 border-top' id='tweet-" + tweet.id + "'><p>"+ tweet.content + "</p> <div>"+ likeBtn(tweet) +" "+ unlikeBtn(tweet) +" "+ retweetBtn(tweet) +"</div></div>"
+           return formattedTweet
+        }
+
+
+      function loadTweets(tweetsElement) {
+        const xhr = new XMLHttpRequest()
+        const method = 'GET'
+        const url = "/tweets"
+        const responseType = "json"
+
+        xhr.responseType = responseType
+        xhr.open(method, url)
+        xhr.onload = function () {
+            const serverResponse = xhr.response
+            var listedItems = serverResponse // this is ana array
+            var finalTweetStr = ""
+            var i;
+            for (i=0; i<listedItems.length; i++  ){
+               
+                currentElement = formatTweetElement(listedItems[i])
+                
+                finalTweetStr +=  currentElement
+                
+            }
+            tweetsElement.innerHTML = finalTweetStr
+
+           // console.log(xhr.response)
+        }
+        xhr.send()
+      }
+
+    loadTweets(tweetsElement)
+
+    </script>
+    
+</body>
+</html>
